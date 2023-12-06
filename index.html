@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>wallpaper</title>
+    <meta name="description" content="wallpaper">
+    <meta name="keywords" content="wallpaper">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function windUp(url) {
+            document.title = url;
+            document.getElementsByTagName("html")[0].style.background = `url('${url}') no-repeat center center fixed`;
+            document.getElementsByTagName("html")[0].style.backgroundSize = 'cover';
+
+            sessionStorage.setItem("wallpaper", url)
+
+            const expire = 1000 * 60 * 1; // expires after 1 minutes
+            setTimeout(() => {
+                sessionStorage.setItem('wallpaper', '');
+                console.log('sessionStorage: expired');
+            }, expire)
+        }
+
+        if (sessionStorage.getItem('wallpaper')) {
+            const url = sessionStorage.getItem('wallpaper');
+            console.log("sessionStorage: " + url);
+
+            windUp(url);
+        } else {
+            axios.get('https://api.github.com/repos/536/wallpapers/contents/wallpapers/1920x1080')
+                .then(response => {
+                    const pictures = response.data.filter(file => file.type === 'file' && (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')));
+                    const index = Math.floor(Math.random() * pictures.length);
+                    if (pictures.length > 0) {
+                        const wallpaper = pictures[index];
+                        const url = wallpaper.download_url.replace('https://raw.githubusercontent.com', 'https://cdn.jsdelivr.net/gh').replace('/blob', '').replace(/^([^\/]*\/){5}([^\/]*\/)?/, match => match.slice(0, -1) + "@");
+                        console.log("remote: " + url);
+
+                        windUp(url);
+                    }
+                });
+        }
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
